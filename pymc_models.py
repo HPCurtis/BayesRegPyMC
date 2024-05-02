@@ -48,3 +48,22 @@ with pm.Model as lm_noNA_ridge_FB:
 
     # Define likelihood
     y_train = Normal("y_train", mu=linpred, sigma=sigma, observed=y_train)
+
+
+with pm.Model() as lm_noNA_lasso_FB.stan:
+
+    # Define priors.
+    mu = pm.Uniform("mu", lower=10e6, upper=10e6)
+    sigma2 = pm.Exponential("sigma2", lam=1)  # equivalent to a uniform on log(sigma^2)
+    lambda1 = pm.HalfCauchy("lambda",  beta = 1)
+
+
+     # Equivalent to transformed parameters section.
+    sigma = pm.Deterministic("sigma", pm.math.sqrt(sigma2))
+    beta = pm.Laplace("beta", mu = 0, b = sigma/lambda1, shape = p)
+
+    # Define linear predictor.
+    linpred = pm.Deterministic("linpred", mu + pm.math.dot(X_train, beta) )
+
+    # Define likelihood
+    y_train = Normal("y_train", mu=linpred, sigma=sigma, observed=y_train)
